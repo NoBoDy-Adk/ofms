@@ -6,7 +6,6 @@ const bcrypt = require("bcryptjs");
 const session = require("express-session");
 const { v4: uuidv4 } = require("uuid");
 const moment = require("moment");
-const { error } = require("console");
 
 const app = express();
 
@@ -216,29 +215,30 @@ app.get('/get-arrival-ports', async (req, res) => {
 
 // Calculate quote and store temporarily
 app.post("/calculate-quote", async (req, res) => {
-  const { shipName, departurePortname, arrivalPortname, volume, description } = req.body;
+  const { shipName, departurePortId, arrivalPortId, volume, description } = req.body;
 
   try {
+    // Fetch ship ID based on the ship name selected
+    const [shipResults] = await db.query("SELECT ship_id FROM transport_vessel WHERE name = ?", [shipName]);
+    const shipid = shipResults.length > 0 ? shipResults[0].ship_id : null;
+    console.log(shipName);
+
+    if (!shipid) {
+      return res.status(400).json({ error: "Invalid ship selected." });
+    }
+
     // Replace this logic with actual calculation based on your business rules
     const amount = volume * 10; // For example, $10 per unit volume
 
     // Store the calculated data in session for later use
-    req.session.quoteData = {
-      shipName,           // Store ship name directly
-      departurePortname,   // Store departure port ID
-      arrivalPortname,     // Store arrival port ID
-      volume,            // Store volume
-      description,       // Store description
-      amount: amount.toFixed(2) // Store amount as a formatted string
-    };
+    req.session.quoteData = { shipid, departurePortId, arrivalPortId, volume, description, amount };
 
-    res.json({ amount: amount.toFixed(2) }); // Return the calculated amount
+    res.json({ amount: amount.toFixed(2) }); // Return the amount
   } catch (error) {
     console.error("Error calculating quote:", error);
     res.status(500).send("Error calculating quote.");
   }
 });
-
 
 // Accept Quote: Proceed to receiver details
 app.post("/accept-quote", (req, res) => {
@@ -254,8 +254,7 @@ app.post("/decline-quote", (req, res) => {
   res.redirect("/dashboard"); // Redirect to dashboard
 });
 
-
-
+// Receiver Details Route
 app.get("/receiver-details", (req, res) => {
   if (!req.session.quoteData) {
     return res.redirect("/get-quote"); // If no quote data, redirect to quote page
@@ -263,6 +262,7 @@ app.get("/receiver-details", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "receiver-details.html")); // Serve receiver details HTML
 });
 
+// Place Order
 app.post("/place-order", async (req, res) => {
   const { receiverName, receiverContact } = req.body;
   const quoteData = req.session.quoteData;
@@ -276,7 +276,7 @@ app.post("/place-order", async (req, res) => {
   const shipment_id = uuidv4(); // Generate unique shipment ID
 
   // Extract details from quoteData
-  const { shipName, departurePortname, volume, amount, description } = quoteData;
+  const { shipid, departurePortId, volume, amount, description } = quoteData;
   const supplier_id = req.session.supplier_id; // Fetch supplier ID from session
 
   const connection = await db.getConnection();
@@ -286,8 +286,8 @@ app.post("/place-order", async (req, res) => {
     // Insert product details into the Product table
     const product_id = uuidv4(); // Generate unique product ID
     await connection.query(
-      "INSERT INTO product (product_id, description, volume, order_id, supplier_id) VALUES (?, ?, ?, ?, ?)",
-      [product_id, description, volume, order_id, supplier_id]
+      "INSERT INTO product (product_id, description, volume, order_id, ship_id, supplier_id) VALUES (?, ?, ?, ?, ?, ?)",
+      [product_id, description, volume, order_id, shipid, supplier_id] // Use shipid from quoteData
     );
 
     // Insert receiver details into the supplier_receiver table
@@ -307,8 +307,8 @@ app.post("/place-order", async (req, res) => {
     const estimatedArrivalDate = moment().add(7, 'days').format("YYYY-MM-DD"); // Example: 7 days later
 
     await connection.query(
-      "INSERT INTO shipment (shipment_id, order_id, shipment_date, estimated_arrival_date) VALUES (?, ?, ?, ?)",
-      [shipment_id, order_id, shipmentDate, estimatedArrivalDate]
+      "INSERT INTO shipment (shipment_id, order_id, shipment_date, estimated_arrival_date, departure_port_id) VALUES (?, ?, ?, ?, ?)",
+      [shipment_id, order_id, shipmentDate, estimatedArrivalDate, departurePortId]
     );
 
     await connection.commit(); // Commit transaction
@@ -325,77 +325,19 @@ app.post("/place-order", async (req, res) => {
     connection.release(); // Release connection back to the pool
   }
 });
-// Serve shipment details page
-app.get("/shipment-details", (req, res) => {
-  if (!req.session.unique_user_id) {
-    return res.redirect("/login");
-  }
-  res.sendFile(path.join(__dirname, "public", "shipment-details.html")); // Serve shipment details HTML
-});
-// Fetch shipment details for the logged-in user
-app.get('/api/get-shipments', async (req, res) => {
-  if (!req.session.unique_user_id) {
-      return res.status(401).json({ error: "Unauthorized" });
-  }
-
-  try {
-      const [shipments] = await db.query(
-          "SELECT shipment_id, order_id, shipment_date, estimated_arrival_date FROM shipment WHERE order_id IN (SELECT order_id FROM order_details WHERE supplier_id = ?)",
-          [req.session.supplier_id]
-      );
-      res.json(shipments);
-  } catch (error) {
-      console.error("Error fetching shipments:", error);
-      res.status(500).send("Error fetching shipments.");
-  }
-});
-// Serve the port details page
-app.get("/port-details", (req, res) => {
-  if (!req.session.unique_user_id) {
-    return res.redirect("/login");
-  }
-  res.sendFile(path.join(__dirname, "public", "port-details.html")); // Ensure the path is correct
-});
-
-// Fetch arrival and departure ports
-app.get('/get-ports', async (req, res) => {
-    try {
-        const [arrivalPorts] = await db.query("SELECT port_name, port_location FROM port_arrival");
-        const [departurePorts] = await db.query("SELECT port_name, port_location FROM port_departure");
-        
-        res.json({ arrivalPorts, departurePorts });
-    } catch (error) {
-        console.error("Error fetching ports:", error);
-        res.status(500).send("Error fetching ports.");
-    }
-});
-app.get('/ship-details', async (req, res) => {
-  try {
-      const ships = await db.query('SELECT * FROM Transport_Vessel'); // Adjust your query as needed
-      res.render('ship-details', { ships });
-  } catch (error) {
-      console.error('Error fetching ship details:', error);
-      res.status(500).send('Server Error');
-  }
-});
-
-
-
-
 
 // Logout Route
 app.get("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      return res.redirect("/");
+      return res.status(500).send("Error logging out.");
     }
-    res.clearCookie("connect.sid");
-    res.redirect("/");
+    res.redirect("/"); // Redirect to home after logout
   });
 });
 
-// Server Listening
+// Start server
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on http://localhost:${PORT}`);
 });

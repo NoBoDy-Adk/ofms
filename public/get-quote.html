@@ -31,70 +31,117 @@
         <input type="number" id="volume" name="volume" min="0" required>
 
         <label for="description">Description:</label>
-        <textarea id="description" name="description" required></textarea>
+        <input type="text" id="description" name="description" required>
 
         <button type="submit">Calculate Quote</button>
     </form>
 
-    <div id="quote-result" style="display:none;">
-        <h2>Estimated Amount: $<span id="amount"></span></h2>
-        <button id="submit-quote">Submit Quote</button>
+    <div id="quote-result" style="display: none;">
+        <h2>Quote Amount: <span id="quote-amount"></span></h2>
+        <button id="accept-quote">Accept Quote</button>
+        <button id="decline-quote">Decline Quote</button>
     </div>
 
     <script>
-        // Fetch ships, departure ports, and arrival ports
-        async function loadDropdowns() {
-            const shipsResponse = await fetch('/get-ships');
-            const ships = await shipsResponse.json();
-            const shipSelect = document.getElementById('ship');
-            ships.forEach(ship => {
-                const option = document.createElement('option');
-                option.value = ship.id; // Adjust according to your ship ID field
-                option.textContent = ship.name;
-                shipSelect.appendChild(option);
+        document.addEventListener('DOMContentLoaded', () => {
+            // Fetch and populate ships and ports
+            fetchShips();
+            fetchDeparturePorts();
+            fetchArrivalPorts();
+
+            // Handle quote form submission
+            const quoteForm = document.getElementById('quote-form');
+            quoteForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+                const formData = new FormData(quoteForm);
+                const data = Object.fromEntries(formData);
+
+                try {
+                    const response = await fetch('/calculate-quote', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        document.getElementById('quote-amount').textContent = `$${result.amount}`;
+                        document.getElementById('quote-result').style.display = 'block';
+                    } else {
+                        alert('Error calculating quote: ' + result.error);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while calculating the quote.');
+                }
             });
 
-            const departurePortsResponse = await fetch('/get-departure-ports');
-            const departurePorts = await departurePortsResponse.json();
-            const departurePortSelect = document.getElementById('departure-port');
-            departurePorts.forEach(port => {
-                const option = document.createElement('option');
-                option.value = port.id; // Adjust according to your port ID field
-                option.textContent = port.port_name;
-                departurePortSelect.appendChild(option);
+            // Accept Quote
+            document.getElementById('accept-quote').addEventListener('click', async () => {
+                const response = await fetch('/accept-quote', { method: 'POST' });
+                if (response.ok) {
+                    window.location.href = '/receiver-details';
+                }
             });
 
-            const arrivalPortsResponse = await fetch('/get-arrival-ports');
-            const arrivalPorts = await arrivalPortsResponse.json();
-            const arrivalPortSelect = document.getElementById('arrival-port');
-            arrivalPorts.forEach(port => {
-                const option = document.createElement('option');
-                option.value = port.id; // Adjust according to your port ID field
-                option.textContent = port.port_name;
-                arrivalPortSelect.appendChild(option);
+            // Decline Quote
+            document.getElementById('decline-quote').addEventListener('click', async () => {
+                const response = await fetch('/decline-quote', { method: 'POST' });
+                if (response.ok) {
+                    window.location.href = '/dashboard';
+                }
             });
-        }
-
-        document.getElementById('quote-form').addEventListener('submit', async (event) => {
-            event.preventDefault();
-
-            const formData = new FormData(event.target);
-            const data = Object.fromEntries(formData.entries());
-
-            const response = await fetch('/calculate-quote', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(data),
-            });
-
-            const result = await response.json();
-            document.getElementById('amount').textContent = result.amount;
-            document.getElementById('quote-result').style.display = 'block';
         });
 
-        loadDropdowns();
+        async function fetchShips() {
+            try {
+                const response = await fetch('/get-ships');
+                const ships = await response.json();
+                const shipSelect = document.getElementById('ship');
+                ships.forEach(ship => {
+                    const option = document.createElement('option');
+                    option.value = ship.name; // Assuming you want the ship name as the value
+                    option.textContent = ship.name;
+                    shipSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching ships:', error);
+            }
+        }
+
+        async function fetchDeparturePorts() {
+            try {
+                const response = await fetch('/get-departure-ports');
+                const ports = await response.json();
+                const portSelect = document.getElementById('departure-port');
+                ports.forEach(port => {
+                    const option = document.createElement('option');
+                    option.value = port.port_name; // Assuming you want the port name as the value
+                    option.textContent = port.port_name;
+                    portSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching departure ports:', error);
+            }
+        }
+
+        async function fetchArrivalPorts() {
+            try {
+                const response = await fetch('/get-arrival-ports');
+                const ports = await response.json();
+                const portSelect = document.getElementById('arrival-port');
+                ports.forEach(port => {
+                    const option = document.createElement('option');
+                    option.value = port.port_name; // Assuming you want the port name as the value
+                    option.textContent = port.port_name;
+                    portSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching arrival ports:', error);
+            }
+        }
     </script>
 </body>
 </html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ship Details</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Optional CSS -->
+</head>
+<body>
+    <div class="container">
+        <h1>Transport Vessel Details</h1>
+
+        <!-- Table for Ship Details -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Ship ID</th>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Capacity</th>
+                    <th>Owner ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- This section will be populated dynamically with data from the server -->
+                <% ships.forEach(ship => { %>
+                    <tr>
+                        <td><%= ship.ship_id %></td>
+                        <td><%= ship.name %></td>
+                        <td><%= ship.type %></td>
+                        <td><%= ship.capacity %></td>
+                        <td><%= ship.owner_id %></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+
+        <button onclick="window.location.href='/dashboard'">Return to Dashboard</button>
+    </div>
+</body>
+</html>

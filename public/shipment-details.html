@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipment Details</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your CSS file -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        .button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Shipment Details</h1>
+        <table id="shipmentTable">
+            <thead>
+                <tr>
+                    <th>Shipment ID</th>
+                    <th>Order ID</th>
+                    <th>Shipment Date</th>
+                    <th>Estimated Arrival Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Shipment details will be populated here -->
+            </tbody>
+        </table>
+        <a href="/dashboard" class="button">Return to home</a> <!-- Button to return to dashboard -->
+    </div>
+
+    <script>
+        // Fetch shipment details when the page loads
+        document.addEventListener("DOMContentLoaded", async () => {
+            const response = await fetch('/api/get-shipments');
+            const shipments = await response.json();
+            const tbody = document.querySelector("#shipmentTable tbody");
+            shipments.forEach(shipment => {
+                const row = `<tr>
+                    <td>${shipment.shipment_id}</td>
+                    <td>${shipment.order_id}</td>
+                    <td>${shipment.shipment_date}</td>
+                    <td>${shipment.estimated_arrival_date}</td>
+                    <td>${shipment.status || 'Pending'}</td>
+                </tr>`;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        });
+    </script>
+</body>
+</html>

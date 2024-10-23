@@ -1,7 +1,7 @@
+/* styles.css */
 body {
     font-family: Arial, sans-serif;
     background-color: #f4f4f4;
-    color: #333;
     margin: 0;
     padding: 20px;
 }
@@ -9,14 +9,15 @@ body {
 .container {
     max-width: 800px;
     margin: auto;
-    padding: 20px;
     background: white;
+    padding: 20px;
     border-radius: 8px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-h1, h2 {
+h1 {
     text-align: center;
+    color: #333;
 }
 
 ul {
@@ -24,45 +25,31 @@ ul {
     padding: 0;
 }
 
-ul li {
-    margin: 10px 0;
+li {
+    margin: 15px 0;
 }
 
 a {
     text-decoration: none;
-    color: #007bff;
+    color: #007BFF;
+    font-weight: bold;
+    transition: color 0.3s;
 }
 
 a:hover {
-    text-decoration: underline;
+    color: #0056b3;
 }
 
-form {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-label {
-    margin: 5px 0;
-}
-
-input {
-    margin-bottom: 15px;
-    padding: 8px;
-    width: 100%;
-    max-width: 300px;
-}
-
-button {
-    padding: 10px 15px;
-    background: #007bff;
+a.logout {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+    background: #dc3545;
     color: white;
-    border: none;
+    padding: 10px;
     border-radius: 5px;
-    cursor: pointer;
 }
 
-button:hover {
-    background: #0056b3;
+a.logout:hover {
+    background: #c82333;
 }
