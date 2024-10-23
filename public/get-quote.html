@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get Quote</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Add your CSS file here -->
+</head>
+<body>
+    <h1>Get Quote</h1>
+    <form id="quote-form">
+        <label for="ship">Select Ship:</label>
+        <select id="ship" name="shipid" required>
+            <option value="">Select a ship</option>
+            <!-- Ships will be populated here -->
+        </select>
+
+        <label for="departure-port">Select Departure Port:</label>
+        <select id="departure-port" name="departurePortId" required>
+            <option value="">Select a departure port</option>
+            <!-- Departure ports will be populated here -->
+        </select>
+
+        <label for="arrival-port">Select Arrival Port:</label>
+        <select id="arrival-port" name="arrivalPortId" required>
+            <option value="">Select an arrival port</option>
+            <!-- Arrival ports will be populated here -->
+        </select>
+
+        <label for="volume">Volume:</label>
+        <input type="number" id="volume" name="volume" min="0" required>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" required></textarea>
+
+        <button type="submit">Calculate Quote</button>
+    </form>
+
+    <div id="quote-result" style="display:none;">
+        <h2>Estimated Amount: $<span id="amount"></span></h2>
+        <button id="submit-quote">Submit Quote</button>
+    </div>
+
+    <script>
+        // Fetch ships, departure ports, and arrival ports
+        async function loadDropdowns() {
+            const shipsResponse = await fetch('/get-ships');
+            const ships = await shipsResponse.json();
+            const shipSelect = document.getElementById('ship');
+            ships.forEach(ship => {
+                const option = document.createElement('option');
+                option.value = ship.id; // Adjust according to your ship ID field
+                option.textContent = ship.name;
+                shipSelect.appendChild(option);
+            });
+
+            const departurePortsResponse = await fetch('/get-departure-ports');
+            const departurePorts = await departurePortsResponse.json();
+            const departurePortSelect = document.getElementById('departure-port');
+            departurePorts.forEach(port => {
+                const option = document.createElement('option');
+                option.value = port.id; // Adjust according to your port ID field
+                option.textContent = port.port_name;
+                departurePortSelect.appendChild(option);
+            });
+
+            const arrivalPortsResponse = await fetch('/get-arrival-ports');
+            const arrivalPorts = await arrivalPortsResponse.json();
+            const arrivalPortSelect = document.getElementById('arrival-port');
+            arrivalPorts.forEach(port => {
+                const option = document.createElement('option');
+                option.value = port.id; // Adjust according to your port ID field
+                option.textContent = port.port_name;
+                arrivalPortSelect.appendChild(option);
+            });
+        }
+
+        document.getElementById('quote-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData.entries());
+
+            const response = await fetch('/calculate-quote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data),
+            });
+
+            const result = await response.json();
+            document.getElementById('amount').textContent = result.amount;
+            document.getElementById('quote-result').style.display = 'block';
+        });
+
+        loadDropdowns();
+    </script>
+</body>
+</html>

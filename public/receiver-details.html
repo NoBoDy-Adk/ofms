@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receiver Details</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Optional CSS -->
+</head>
+<body>
+    <h1>Receiver Details</h1>
+    <form id="receiverForm" action="/place-order" method="POST">
+        <input type="hidden" name="amount" id="quoteAmount">
+        <label for="receiverName">Receiver Name:</label>
+        <input type="text" id="receiverName" name="receiverName" required>
+        <br>
+        <label for="receiverContact">Receiver Contact:</label>
+        <input type="text" id="receiverContact" name="receiverContact" required>
+        <br>
+        <button type="submit">Place Order</button>
+    </form>
+
+    <script>
+        // Get the query parameters from the URL
+        const params = new URLSearchParams(window.location.search);
+        const amount = params.get('amount');
+
+        // Set the amount in the hidden input field
+        document.getElementById('quoteAmount').value = amount;
+    </script>
+</body>
+</html>

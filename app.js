@@ -1,5 +1,5 @@
 const express = require("express");
-const mysql = require("mysql2/promise"); // Use the promise version of mysql2
+const mysql = require("mysql2/promise");
 const dotenv = require("dotenv");
 const path = require("path");
 const bcrypt = require("bcryptjs");
@@ -41,12 +41,15 @@ const publicDir = path.join(__dirname, "./public");
 app.use(express.static(publicDir)); // Serving static HTML files
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
 // Serve index.html with session check for username
 app.get("/", (req, res) => {
   if (req.session.username) {
     res.send(
       `<h1>Hi, ${req.session.username}</h1>
-      <a href="/logout">Logout</a>`
+      <a href="/logout">Logout</a>
+      <br>
+      <a href="/dashboard">Go to Dashboard</a>`
     );
   } else {
     res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -62,6 +65,7 @@ app.get("/register", (req, res) => {
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
+
 // Register User Route
 app.post("/register", async (req, res) => {
   const { contact_number, signin_password, email, supplier_name, address } = req.body;
@@ -96,18 +100,15 @@ app.post("/register", async (req, res) => {
     req.session.unique_user_id = unique_user_id;
 
     // Redirect to index page after successful registration
-    return res.redirect("/"); // Use return to avoid further code execution
+    return res.redirect("/");
 
   } catch (error) {
     console.error("Registration failed:", error);
-
-    // Send an error response only once
     if (!res.headersSent) {
       return res.status(500).json({ error: "Registration failed" });
     }
   }
 });
-
 
 // Login Route using Contact Number
 app.post("/login", async (req, res) => {
@@ -115,7 +116,6 @@ app.post("/login", async (req, res) => {
 
   try {
     const connection = await db.getConnection();
-    
     const [results] = await connection.query(
       "SELECT * FROM Sign_In_User_Details WHERE contact_number = ?",
       [contact_number]
@@ -124,7 +124,6 @@ app.post("/login", async (req, res) => {
     connection.release();
 
     if (results.length === 0) {
-      // Redirect to custom login page with error message
       return res.redirect("/login?message=An%20error%20occurred");
     }
 
@@ -152,14 +151,84 @@ app.post("/login", async (req, res) => {
   }
 });
 
-
 // Dashboard Route
 app.get("/dashboard", (req, res) => {
   if (!req.session.unique_user_id) {
     return res.redirect("/login");
   }
-
   res.sendFile(path.join(__dirname, "public", "dashboard.html")); // Serve dashboard HTML
+});
+
+// Serve the get quote page
+app.get("/get-quote", async (req, res) => {
+  if (!req.session.unique_user_id) {
+    return res.redirect("/login");
+  }
+
+  try {
+    const [ships] = await db.query("SELECT name FROM Transport_Vessel");
+    const [departurePorts] = await db.query("SELECT port_name, port_location FROM port_departure");
+    const [arrivalPorts] = await db.query("SELECT port_name, port_location FROM port_arrival");
+
+    res.sendFile(path.join(__dirname, "public", "get-quote.html"));
+  } catch (error) {
+    console.error("Error fetching quote data:", error);
+    res.status(500).send("Error fetching quote data.");
+  }
+});
+
+// Fetch ships
+app.get('/get-ships', async (req, res) => {
+    try {
+        const [ships] = await db.query("SELECT name FROM Transport_Vessel");
+        res.json(ships);
+    } catch (error) {
+        console.error("Error fetching ships:", error);
+        res.status(500).send("Error fetching ships.");
+    }
+});
+
+// Fetch departure ports
+app.get('/get-departure-ports', async (req, res) => {
+    try {
+        const [departurePorts] = await db.query("SELECT port_name, port_location FROM port_departure");
+        res.json(departurePorts);
+    } catch (error) {
+        console.error("Error fetching departure ports:", error);
+        res.status(500).send("Error fetching departure ports.");
+    }
+});
+
+// Fetch arrival ports
+app.get('/get-arrival-ports', async (req, res) => {
+    try {
+        const [arrivalPorts] = await db.query("SELECT port_name, port_location FROM port_arrival");
+        res.json(arrivalPorts);
+    } catch (error) {
+        console.error("Error fetching arrival ports:", error);
+        res.status(500).send("Error fetching arrival ports.");
+    }
+});
+
+// Calculate quote based on selected ship and ports
+app.post("/calculate-quote", async (req, res) => {
+  const { shipid, departurePortId, arrivalPortId, volume, description } = req.body;
+
+  try {
+    // Insert product details into the database
+    const product_id = uuidv4(); // Generate unique product ID
+    await db.query(
+      "INSERT INTO product (product_id, description, volume) VALUES (?, ?, ?)",
+      [product_id, description, volume]
+    );
+
+    // Replace this logic with actual calculation based on your business rules
+    const amount = volume * 10; // For example, $10 per unit volume
+    res.json({ amount: amount.toFixed(2), product_id }); // Return the amount and product_id
+  } catch (error) {
+    console.error("Error calculating quote:", error);
+    res.status(500).send("Error calculating quote.");
+  }
 });
 
 // Handle user logout
