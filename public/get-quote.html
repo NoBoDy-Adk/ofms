@@ -5,6 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Get Quote</title>
     <link rel="stylesheet" href="styles.css"> <!-- Add your CSS file here -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e8f4fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #2c3e50;
+        }
+
+        form {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        label {
+            margin-top: 15px;
+            display: block;
+            color: #34495e;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 10px;
+            width: 100%;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #quote-result {
+            margin-top: 20px;
+            display: none;
+            padding: 20px;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            background-color: #f7f9fc;
+        }
+
+        #quote-amount {
+            font-weight: bold;
+            color: #27ae60;
+            font-size: 24px;
+        }
+    </style>
 </head>
 <body>
     <h1>Get Quote</h1>
@@ -36,7 +106,7 @@
         <button type="submit">Calculate Quote</button>
     </form>
 
-    <div id="quote-result" style="display: none;">
+    <div id="quote-result">
         <h2>Quote Amount: <span id="quote-amount"></span></h2>
         <button id="accept-quote">Accept Quote</button>
         <button id="decline-quote">Decline Quote</button>

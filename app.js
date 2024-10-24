@@ -313,8 +313,8 @@ app.post("/place-order", async (req, res) => {
 
     await connection.commit(); // Commit transaction
     req.session.quoteData = null; // Clear session quote data after placing the order
-    res.redirect("/dashboard"); // Redirect to dashboard after successful order
-  } catch (error) {
+    res.redirect(`/process-payment?amount=${amount}`);
+    } catch (error) {
     await connection.rollback(); // Rollback transaction in case of error
     console.error("Error placing order:", error);
     if (error.sqlMessage) {
@@ -325,13 +325,36 @@ app.post("/place-order", async (req, res) => {
     connection.release(); // Release connection back to the pool
   }
 });
-// Serve shipment details page
+// Process Payment Route
+app.post("/process-payment", async (req, res) => {
+  const { amount } = req.body;
+
+  try {
+      // Integrate with your payment gateway here
+      // For example, using Stripe:
+      const paymentIntent = await stripe.paymentIntents.create({
+          amount: amount * 100, // Convert to cents for Stripe
+          currency: 'usd',
+      });
+
+      // Handle successful payment logic
+      res.redirect("/dashboard"); // Redirect to dashboard after successful payment
+  } catch (error) {
+      console.error("Payment processing error:", error);
+      res.status(500).json({ success: false, error: "Payment processing failed" });
+  }
+});
+
+
+
+// Serve the shipment details page
 app.get("/shipment-details", (req, res) => {
   if (!req.session.unique_user_id) {
     return res.redirect("/login");
   }
-  res.sendFile(path.join(__dirname, "public", "shipment-details.html")); // Serve shipment details HTML
+  res.sendFile(path.join(__dirname, "public", "shipment-details.html")); // Serve the shipment details HTML
 });
+
 // Fetch shipment details for the logged-in user
 app.get('/api/get-shipments', async (req, res) => {
   if (!req.session.unique_user_id) {
@@ -349,6 +372,8 @@ app.get('/api/get-shipments', async (req, res) => {
       res.status(500).send("Error fetching shipments.");
   }
 });
+
+
 // Serve the port details page
 app.get("/port-details", (req, res) => {
   if (!req.session.unique_user_id) {
@@ -357,41 +382,35 @@ app.get("/port-details", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "port-details.html")); // Ensure the path is correct
 });
 
-// Fetch arrival and departure ports
+// Fetch arrival and departure ports for the port details page
 app.get('/get-ports', async (req, res) => {
     try {
         const [arrivalPorts] = await db.query("SELECT port_name, port_location FROM port_arrival");
         const [departurePorts] = await db.query("SELECT port_name, port_location FROM port_departure");
-        
         res.json({ arrivalPorts, departurePorts });
     } catch (error) {
         console.error("Error fetching ports:", error);
         res.status(500).send("Error fetching ports.");
     }
 });
-app.get('/ship-details', async (req, res) => {
+
+// Serve the ship details page
+app.get('/ship-details', (req, res) => {
+  if (!req.session.unique_user_id) {
+    return res.redirect("/login");
+  }
+  res.sendFile(path.join(__dirname, "public", "ship-details.html"));
+});
+
+// Fetch full ship details for the ship details page
+app.get('/get-ship-details', async (req, res) => {
   try {
-      const ships = await db.query('SELECT * FROM Transport_Vessel'); // Adjust your query as needed
-      res.render('ship-details', { ships });
+      const [ships] = await db.query('SELECT * FROM Transport_Vessel');
+      res.json(ships);
   } catch (error) {
       console.error('Error fetching ship details:', error);
       res.status(500).send('Server Error');
   }
-});
-
-
-
-
-
-// Logout Route
-app.get("/logout", (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.redirect("/");
-    }
-    res.clearCookie("connect.sid");
-    res.redirect("/");
-  });
 });
 
 // Server Listening

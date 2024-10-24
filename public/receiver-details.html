@@ -4,22 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receiver Details</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Add your CSS file here -->
+    <style>
+        /* Add your existing styles here... */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff; /* Light background color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Full viewport height */
+            margin: 0; /* Remove default margin */
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 400px; /* Fixed width for the form */
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50; /* Darker text color */
+            margin-bottom: 20px;
+        }
+
+        label {
+            margin: 10px 0 5px;
+            font-weight: bold;
+            color: #34495e; /* Darker label color */
+        }
+
+        input[type="text"] {
+            width: 100%; /* Full width */
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #007bff; /* Change border color on focus */
+            outline: none; /* Remove default outline */
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff; /* Blue button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* Modal styles */
+        #paymentModal {
+            position: fixed;
+            z-index: 999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            display: none; /* Hide modal by default */
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            width: 300px;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h1>Receiver Details</h1>
-    <form id="receiver-form">
-        <label for="receiverName">Receiver Name:</label>
-        <input type="text" id="receiverName" name="receiverName" required>
+    <div class="container">
+        <h1>Receiver Details</h1>
+        <form id="receiver-form">
+            <label for="receiverName">Receiver Name:</label>
+            <input type="text" id="receiverName" name="receiverName" required>
 
-        <label for="receiverContact">Receiver Contact:</label>
-        <input type="text" id="receiverContact" name="receiverContact" required>
+            <label for="receiverContact">Receiver Contact:</label>
+            <input type="text" id="receiverContact" name="receiverContact" required>
 
-        <button type="submit">Place Order</button>
-    </form>
+            <button type="submit">Place Order</button>
+        </form>
+        <div class="error-message" id="error-message"></div> <!-- Placeholder for error messages -->
+    </div>
+
+    <!-- Payment Modal -->
+    <div id="paymentModal">
+        <div class="modal-content">
+            <span id="closeModal" style="cursor:pointer;">&times;</span>
+            <h1>Payment</h1>
+            <form id="paymentForm">
+                <label for="amount">Amount:</label>
+                <input type="text" id="amount" name="amount" value="" readonly>
+                <button type="submit">Pay Now</button>
+            </form>
+        </div>
+    </div>
 
     <script>
         const receiverForm = document.getElementById('receiver-form');
+        const errorMessage = document.getElementById('error-message');
+        const paymentModal = document.getElementById('paymentModal');
+        const closeModal = document.getElementById('closeModal');
+        const paymentForm = document.getElementById('paymentForm');
+
         receiverForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const formData = new FormData(receiverForm);
@@ -35,14 +147,52 @@
                 });
 
                 if (response.ok) {
-                    window.location.href = '/dashboard'; // Redirect to dashboard after order placement
+                    const result = await response.json(); // Assuming the response contains the amount
+                    document.getElementById('amount').value = result.amount; // Set the payment amount
+                    paymentModal.style.display = 'flex'; // Show the payment modal
                 } else {
                     const result = await response.json();
-                    alert('Error placing order: ' + result.error);
+                    errorMessage.textContent = 'Error placing order: ' + (result.error || 'Unknown error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred while placing the order.');
+                errorMessage.textContent = 'An error occurred while placing the order.';
+            }
+        });
+
+        closeModal.addEventListener('click', function() {
+            paymentModal.style.display = 'none';
+        });
+
+        paymentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const amount = document.getElementById('amount').value;
+
+            try {
+                const response = await fetch('/process-payment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ amount }),
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    // Handle the DOCX file URL returned by the server
+                    if (result.docxUrl) {
+                        window.open(result.docxUrl); // Open the DOCX file in a new tab
+                    }
+                    paymentModal.style.display = 'none'; // Close the modal
+                    // Optionally redirect or show a success message
+                    alert('Payment successful!'); // Success message
+                } else {
+                    const result = await response.json();
+                    errorMessage.textContent = 'Error processing payment: ' + (result.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorMessage.textContent = 'An error occurred while processing the payment.';
             }
         });
     </script>

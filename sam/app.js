@@ -276,7 +276,7 @@ app.post("/place-order", async (req, res) => {
   const shipment_id = uuidv4(); // Generate unique shipment ID
 
   // Extract details from quoteData
-  const { shipid, departurePortId, volume, amount, description } = quoteData;
+  const { shipid, departureportname, volume, amount, description } = quoteData;
   const supplier_id = req.session.supplier_id; // Fetch supplier ID from session
 
   const connection = await db.getConnection();
@@ -305,7 +305,7 @@ app.post("/place-order", async (req, res) => {
     // Insert shipment details into the shipment table
     const shipmentDate = moment().format("YYYY-MM-DD"); // Current date
     const estimatedArrivalDate = moment().add(7, 'days').format("YYYY-MM-DD"); // Example: 7 days later
-
+    const departurePortId=connection.query("select departure_port_id from departure_port where name in(?)",[departureportname]);
     await connection.query(
       "INSERT INTO shipment (shipment_id, order_id, shipment_date, estimated_arrival_date, departure_port_id) VALUES (?, ?, ?, ?, ?)",
       [shipment_id, order_id, shipmentDate, estimatedArrivalDate, departurePortId]

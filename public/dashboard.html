@@ -4,7 +4,94 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Optional CSS -->
+    <link rel="stylesheet" href="styles.css"> <!-- Link to CSS -->
+    <style>
+        /* CSS for styling the dashboard */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff; /* Light background color */
+            color: #333; /* Dark text color */
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-color: #ffffff; /* White background for the container */
+        }
+
+        h1 {
+            text-align: center;
+            color: #2e8b57; /* Greenish color for the heading */
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            display: flex; /* Flexbox for horizontal layout */
+            justify-content: center; /* Center the buttons */
+            flex-wrap: wrap; /* Wrap buttons if necessary */
+        }
+
+        li {
+            margin: 0 15px; /* Add space between buttons */
+        }
+
+        a {
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            color: white;
+            background-color: #007bff; /* Bootstrap blue color */
+            transition: background-color 0.3s;
+        }
+
+        a:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        .logout {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            background-color: #dc3545; /* Bootstrap red color */
+            padding: 10px;
+            border-radius: 5px;
+            color: white;
+            text-decoration: none; /* Remove underline */
+        }
+
+        .logout:hover {
+            background-color: #c82333; /* Darker red on hover */
+        }
+
+        /* Styles for input and display box */
+        .input-box {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-box input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 70%;
+            margin-right: 10px;
+        }
+
+        .display-box {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #e9ecef; /* Light gray background for display box */
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -15,7 +102,10 @@
             <li><a href="/port-details">Port Details</a></li>
             <li><a href="/ship-details">Ship Details</a></li>
         </ul>
-        <a href="/logout">Logout</a>
+
+
+
+        <a href="/logout" class="logout">Logout</a> <!-- Ensure this URL is correct for your logout functionality -->
     </div>
 </body>
 </html>

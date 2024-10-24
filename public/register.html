@@ -7,25 +7,26 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f8ff;
+            background-color: #f0f8ff; /* Light blue background */
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            height: 100vh; /* Full viewport height */
+            margin: 0; /* Remove default margin */
         }
 
         .container {
-            background-color: white;
+            background-color: white; /* White background for the form */
             padding: 40px;
             border-radius: 8px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            width: 350px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.2); /* Deeper shadow for more depth */
+            width: 350px; /* Fixed width for the form */
         }
 
         h2 {
             text-align: center;
             margin-bottom: 20px;
+            color: #34495e; /* Darker text color */
         }
 
         form {
@@ -34,24 +35,31 @@
         }
 
         input[type="text"], input[type="email"], input[type="password"] {
-            padding: 10px;
+            padding: 12px; /* Increased padding for better touch targets */
             margin: 10px 0;
             border: 1px solid #ccc;
             border-radius: 5px;
+            transition: border-color 0.3s; /* Transition effect for border color */
+        }
+
+        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
+            border-color: #007bff; /* Highlight border on focus */
+            outline: none; /* Remove default outline */
         }
 
         button {
             padding: 12px;
             margin-top: 10px;
-            background-color: #007bff;
-            color: white;
+            background-color: #007bff; /* Blue button */
+            color: white; /* White text color */
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s; /* Transition effect for button */
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: #0056b3; /* Darker blue on hover */
         }
 
         .back-link {
@@ -61,11 +69,18 @@
 
         .back-link a {
             text-decoration: none;
-            color: #007bff;
+            color: #007bff; /* Link color */
         }
 
         .back-link a:hover {
-            color: #0056b3;
+            color: #0056b3; /* Darker link color on hover */
+        }
+
+        /* Error message styling */
+        .error-message {
+            color: red; /* Red color for error messages */
+            text-align: center;
+            margin-top: 10px;
         }
     </style>
 </head>

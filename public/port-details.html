@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Port Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            width: 800px;
+            max-width: 100%;
+            display: flex;
+            justify-content: space-between; /* Aligns the two tables side by side */
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            width: 100%; /* Ensures h1 spans across the full width */
+        }
+
+        .port-section {
+            flex: 1; /* Equal width for both sections */
+            margin: 0 20px; /* Spacing between sections */
+        }
+
+        h2 {
+            color: #34495e;
+            margin-top: 20px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 20px; /* Spacing above the button */
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Port Details</h1>
+
+        <div class="port-section">
+            <h2>Arrival Ports</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Port Name</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody id="arrival-ports-body">
+                    <!-- Arrival ports will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="port-section">
+            <h2>Departure Ports</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Port Name</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody id="departure-ports-body">
+                    <!-- Departure ports will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button onclick="window.location.href='/dashboard'">Return to Dashboard</button>
+
+    <script>
+        // Fetching port data and displaying it
+        async function fetchPortDetails() {
+            try {
+                const response = await fetch('/get-ports');
+                const data = await response.json();
+                
+                console.log(data); // Debug log to verify data received
+
+                // Populate arrival ports
+                const arrivalBody = document.getElementById('arrival-ports-body');
+                data.arrivalPorts.forEach(port => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${port.port_name}</td><td>${port.port_location}</td>`;
+                    arrivalBody.appendChild(row);
+                });
+
+                // Populate departure ports
+                const departureBody = document.getElementById('departure-ports-body');
+                data.departurePorts.forEach(port => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `<td>${port.port_name}</td><td>${port.port_location}</td>`;
+                    departureBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error("Error fetching port details:", error);
+                alert("Failed to load port details.");
+            }
+        }
+
+        // Fetch the port details when the page loads
+        window.onload = fetchPortDetails;
+    </script>
+</body>
+</html>
