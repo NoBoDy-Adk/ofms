@@ -6,7 +6,8 @@ const bcrypt = require("bcryptjs");
 const session = require("express-session");
 const { v4: uuidv4 } = require("uuid");
 const moment = require("moment");
-const { error } = require("console");
+const PDFDocument = require("pdfkit"); // Import PDFKit
+const stripe = require("stripe")("sk_test_51QDmX9CKct6ARWFDJpvcwHd6VaKZqJE65KNsKXOCxLjrtHlgGAfngJ8bUI44RoYldxN7TNkR1sBz8WRG7swwY9v900C0bclLrv"); // Replace with your Stripe secret key
 
 const app = express();
 
@@ -220,7 +221,7 @@ app.post("/calculate-quote", async (req, res) => {
 
   try {
     // Replace this logic with actual calculation based on your business rules
-    const amount = volume * 10; // For example, $10 per unit volume
+    const amount = volume * 0.9; // For example, $10 per unit volume
 
     // Store the calculated data in session for later use
     req.session.quoteData = {
@@ -239,7 +240,6 @@ app.post("/calculate-quote", async (req, res) => {
   }
 });
 
-
 // Accept Quote: Proceed to receiver details
 app.post("/accept-quote", (req, res) => {
   if (!req.session.quoteData) {
@@ -254,96 +254,159 @@ app.post("/decline-quote", (req, res) => {
   res.redirect("/dashboard"); // Redirect to dashboard
 });
 
-
-
 app.get("/receiver-details", (req, res) => {
   if (!req.session.quoteData) {
     return res.redirect("/get-quote"); // If no quote data, redirect to quote page
   }
-  res.sendFile(path.join(__dirname, "public", "receiver-details.html")); // Serve receiver details HTML
+  res.sendFile(path.join(__dirname, "public", "receiver-details.html")); // Serve receiver details page
 });
 
+// Route for placing the order
 app.post("/place-order", async (req, res) => {
   const { receiverName, receiverContact } = req.body;
-  const quoteData = req.session.quoteData;
+  const quoteData = req.session.quoteData; // Get stored quote data from session
 
-  // Check if quote data exists in session
+  // Ensure the quote data exists
   if (!quoteData) {
-    return res.status(400).send("No quote data found.");
+      return res.status(400).json({ error: "No quote data found." });
   }
 
-  const order_id = uuidv4(); // Generate unique order ID
-  const shipment_id = uuidv4(); // Generate unique shipment ID
+  // Generate unique IDs for order and shipment
+  const order_id = uuidv4();
+  const shipment_id = uuidv4();
 
-  // Extract details from quoteData
   const { shipName, departurePortname, volume, amount, description } = quoteData;
   const supplier_id = req.session.supplier_id; // Fetch supplier ID from session
 
   const connection = await db.getConnection();
   try {
-    await connection.beginTransaction(); // Start transaction
+      await connection.beginTransaction();
 
-    // Insert product details into the Product table
-    const product_id = uuidv4(); // Generate unique product ID
-    await connection.query(
-      "INSERT INTO product (product_id, description, volume, order_id, supplier_id) VALUES (?, ?, ?, ?, ?)",
-      [product_id, description, volume, order_id, supplier_id]
-    );
+      // Insert product details into the Product table
+      const product_id = uuidv4();
+      await connection.query(
+          "INSERT INTO product (product_id, description, volume, order_id, supplier_id) VALUES (?, ?, ?, ?, ?)",
+          [product_id, description, volume, order_id, supplier_id]
+      );
 
-    // Insert receiver details into the supplier_receiver table
-    await connection.query(
-      "INSERT INTO supplier_receiver (supplier_id, receiver_name, receiver_no) VALUES (?, ?, ?)",
-      [supplier_id, receiverName, receiverContact]
-    );
+      // Insert receiver details into the supplier_receiver table
+      await connection.query(
+          "INSERT INTO supplier_receiver (supplier_id, receiver_name, receiver_no) VALUES (?, ?, ?)",
+          [supplier_id, receiverName, receiverContact]
+      );
 
-    // Insert order details into the order_details table
-    await connection.query(
-      "INSERT INTO order_details (order_id, product_id, supplier_id, order_date, shipment_id) VALUES (?, ?, ?, ?, ?)",
-      [order_id, product_id, supplier_id, moment().format("YYYY-MM-DD"), shipment_id]
-    );
+      // Insert order details into the order_details table
+      await connection.query(
+          "INSERT INTO order_details (order_id, product_id, supplier_id, order_date, shipment_id) VALUES (?, ?, ?, ?, ?)",
+          [order_id, product_id, supplier_id, moment().format("YYYY-MM-DD"), shipment_id]
+      );
 
-    // Insert shipment details into the shipment table
-    const shipmentDate = moment().format("YYYY-MM-DD"); // Current date
-    const estimatedArrivalDate = moment().add(7, 'days').format("YYYY-MM-DD"); // Example: 7 days later
+      // Insert shipment details into the shipment table
+      const shipmentDate = moment().format("YYYY-MM-DD");
+      const estimatedArrivalDate = moment().add(7, 'days').format("YYYY-MM-DD"); // Example: 7 days later
+      await connection.query(
+          "INSERT INTO shipment (shipment_id, order_id, shipment_date, estimated_arrival_date) VALUES (?, ?, ?, ?)",
+          [shipment_id, order_id, shipmentDate, estimatedArrivalDate]
+      );
 
-    await connection.query(
-      "INSERT INTO shipment (shipment_id, order_id, shipment_date, estimated_arrival_date) VALUES (?, ?, ?, ?)",
-      [shipment_id, order_id, shipmentDate, estimatedArrivalDate]
-    );
+      await connection.commit();
+      req.session.quoteData = null; // Clear session quote data after placing the order
 
-    await connection.commit(); // Commit transaction
-    req.session.quoteData = null; // Clear session quote data after placing the order
-    res.redirect(`/process-payment?amount=${amount}`);
-    } catch (error) {
-    await connection.rollback(); // Rollback transaction in case of error
-    console.error("Error placing order:", error);
-    if (error.sqlMessage) {
-      console.error("SQL Error:", error.sqlMessage);
-    }
-    res.status(500).send("An error occurred while placing the order.");
+      // Return the amount for the payment modal
+      res.json({ amount });
+
+  } catch (error) {
+      await connection.rollback();
+      console.error("Error placing order:", error);
+      res.status(500).json({ error: "An error occurred while placing the order." });
   } finally {
-    connection.release(); // Release connection back to the pool
+      connection.release();
   }
 });
-// Process Payment Route
+// Route for processing the payment
 app.post("/process-payment", async (req, res) => {
-  const { amount } = req.body;
+  const { amount, token } = req.body; // `token` should now be the paymentMethod.id
 
   try {
-      // Integrate with your payment gateway here
-      // For example, using Stripe:
-      const paymentIntent = await stripe.paymentIntents.create({
-          amount: amount * 100, // Convert to cents for Stripe
-          currency: 'usd',
+      const charge = await stripe.charges.create({
+          amount: amount, // Amount in cents
+          currency: 'usd', // Change to your currency
+          source: token, // Use the token sent from the client
+          description: 'Payment for order'
       });
 
-      // Handle successful payment logic
-      res.redirect("/dashboard"); // Redirect to dashboard after successful payment
+      // Handle successful payment response
+      res.json({ success: true, charge });
   } catch (error) {
       console.error("Payment processing error:", error);
-      res.status(500).json({ success: false, error: "Payment processing failed" });
+      res.status(500).json({ error: "An error occurred while processing the payment." });
   }
 });
+
+
+
+// Serve the payment page
+app.get("/payment", (req, res) => {
+  if (!req.session.unique_user_id) {
+    return res.redirect("/login");
+  }
+  res.sendFile(path.join(__dirname, "public", "payment.html")); // Serve payment HTML
+});
+
+// Handle payment and generate invoice
+app.post("/generate-invoice", async (req, res) => {
+  const { amount, orderId } = req.body;
+
+  try {
+    // Generate PDF Invoice
+    const doc = new PDFDocument();
+    const invoicePath = path.join(__dirname, `invoices/invoice_${orderId}.pdf`);
+
+    doc.pipe(fs.createWriteStream(invoicePath));
+    doc.fontSize(25).text('Invoice', { align: 'center' });
+    doc.text(`Order ID: ${orderId}`);
+    doc.text(`Amount: ${amount}`);
+    // Add more details like date, receiver info, etc. here
+    doc.end();
+
+    // Respond with the invoice URL
+    res.json({ invoiceUrl: `/invoices/invoice_${orderId}.pdf` });
+  } catch (error) {
+    console.error("Error generating invoice:", error);
+    res.status(500).send("Error generating invoice.");
+  }
+});
+
+// Serve the generated invoice PDF
+app.get('/invoices/:invoiceName', (req, res) => {
+  const invoicePath = path.join(__dirname, 'invoices', req.params.invoiceName);
+  res.sendFile(invoicePath);
+});
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+
+app.use(cors());
+app.use(bodyParser.json());
+
+app.post('/create-payment-intent', async (req, res) => {
+    const {amount, paymentMethodId} = req.body;
+
+    try {
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: amount,
+            currency: 'usd', // or your currency code
+            payment_method: paymentMethodId,
+            confirm: true, // Confirm immediately
+        });
+
+        res.send({paymentIntent});
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({error: error.message});
+    }
+});
+
 
 
 
@@ -412,9 +475,18 @@ app.get('/get-ship-details', async (req, res) => {
       res.status(500).send('Server Error');
   }
 });
+// Logout Route
+app.get("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.redirect("/dashboard");
+    }
+    res.redirect("/login");
+  });
+});
 
-// Server Listening
+// Start the server
 const PORT = process.env.PORT || 5500;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
