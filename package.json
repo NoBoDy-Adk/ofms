@@ -1,8 +1,16 @@
 {
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "docx": "^9.0.2",
+    "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
+    "express": "^4.21.1",
+    "express-session": "^1.18.1",
     "moment": "^2.30.1",
-    "stripe": "^17.2.1"
+    "mysql2": "^3.11.3",
+    "pdf": "^0.1.0",
+    "pdfkit": "^0.15.0",
+    "stripe": "^17.2.1",
+    "uuid": "^10.0.0"
   }
 }

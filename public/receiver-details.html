@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Receiver Details</title>
     <style>
-        /* Add your existing styles here... */
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f8ff; /* Light background color */
+            background-color: #f0f8ff;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh; /* Full viewport height */
-            margin: 0; /* Remove default margin */
+            height: 100vh;
+            margin: 0;
         }
 
         .container {
@@ -21,23 +20,23 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            width: 400px; /* Fixed width for the form */
+            width: 400px;
         }
 
         h1 {
             text-align: center;
-            color: #2c3e50; /* Darker text color */
+            color: #2c3e50;
             margin-bottom: 20px;
         }
 
         label {
             margin: 10px 0 5px;
             font-weight: bold;
-            color: #34495e; /* Darker label color */
+            color: #34495e;
         }
 
         input[type="text"] {
-            width: 100%; /* Full width */
+            width: 100%;
             padding: 12px;
             margin-bottom: 20px;
             border: 1px solid #ccc;
@@ -46,14 +45,14 @@
         }
 
         input[type="text"]:focus {
-            border-color: #007bff; /* Change border color on focus */
-            outline: none; /* Remove default outline */
+            border-color: #007bff;
+            outline: none;
         }
 
         button {
             width: 100%;
             padding: 12px;
-            background-color: #007bff; /* Blue button */
+            background-color: #007bff;
             color: white;
             border: none;
             border-radius: 5px;
@@ -63,17 +62,15 @@
         }
 
         button:hover {
-            background-color: #0056b3; /* Darker blue on hover */
+            background-color: #0056b3;
         }
 
-        /* Error message styling */
         .error-message {
             color: red;
             text-align: center;
             margin-top: 10px;
         }
 
-        /* Modal styles */
         #paymentModal {
             position: fixed;
             z-index: 999;
@@ -86,14 +83,20 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            display: none; /* Hide modal by default */
+            display: none;
         }
+
         .modal-content {
             background-color: #fff;
             padding: 20px;
             border-radius: 5px;
             width: 300px;
             text-align: center;
+        }
+
+        #closeModal {
+            float: right;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -109,13 +112,13 @@
 
             <button type="submit">Place Order</button>
         </form>
-        <div class="error-message" id="error-message"></div> <!-- Placeholder for error messages -->
+        <div class="error-message" id="error-message"></div>
     </div>
 
     <!-- Payment Modal -->
     <div id="paymentModal">
         <div class="modal-content">
-            <span id="closeModal" style="cursor:pointer;">&times;</span>
+            <span id="closeModal">&times;</span>
             <h1>Payment</h1>
             <form id="paymentForm">
                 <label for="amount">Amount:</label>
@@ -132,6 +135,7 @@
         const closeModal = document.getElementById('closeModal');
         const paymentForm = document.getElementById('paymentForm');
 
+        // Event listener for placing the order
         receiverForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             const formData = new FormData(receiverForm);
@@ -147,8 +151,8 @@
                 });
 
                 if (response.ok) {
-                    const result = await response.json(); // Assuming the response contains the amount
-                    document.getElementById('amount').value = result.amount; // Set the payment amount
+                    const result = await response.json(); // Get the amount to be paid
+                    document.getElementById('amount').value = result.amount; // Set the amount in the modal
                     paymentModal.style.display = 'flex'; // Show the payment modal
                 } else {
                     const result = await response.json();
@@ -160,10 +164,12 @@
             }
         });
 
+        // Close the payment modal
         closeModal.addEventListener('click', function() {
             paymentModal.style.display = 'none';
         });
 
+        // Event listener for processing the payment
         paymentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const amount = document.getElementById('amount').value;
@@ -179,13 +185,11 @@
 
                 if (response.ok) {
                     const result = await response.json();
-                    // Handle the DOCX file URL returned by the server
                     if (result.docxUrl) {
                         window.open(result.docxUrl); // Open the DOCX file in a new tab
                     }
                     paymentModal.style.display = 'none'; // Close the modal
-                    // Optionally redirect or show a success message
-                    alert('Payment successful!'); // Success message
+                    alert('Payment successful!'); // Show success message
                 } else {
                     const result = await response.json();
                     errorMessage.textContent = 'Error processing payment: ' + (result.error || 'Unknown error');

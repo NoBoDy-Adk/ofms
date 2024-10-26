@@ -3,14 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Link to CSS -->
+    <meta name="description" content="Dashboard for the OFMS system with links to key functionalities like quote, shipment, port, and ship details.">
+    <meta name="keywords" content="dashboard, OFMS, shipment, quote, details, port, ship">
+    <meta name="author" content="Your Company Name">
+    <title>Dashboard | OFMS</title>
+    <link rel="stylesheet" href="styles.css">
     <style>
-        /* CSS for styling the dashboard */
+        /* CSS Variables for easy color adjustments */
+        :root {
+            --main-bg-color: #f0f8ff;
+            --container-bg-color: #ffffff;
+            --heading-color: #2e8b57;
+            --button-bg-color: #007bff;
+            --button-hover-bg-color: #0056b3;
+            --logout-bg-color: #dc3545;
+            --logout-hover-bg-color: #c82333;
+            --text-color: #333;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f8ff; /* Light background color */
-            color: #333; /* Dark text color */
+            background-color: var(--main-bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 20px;
         }
@@ -20,56 +35,57 @@
             margin: 0 auto;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-            background-color: #ffffff; /* White background for the container */
+            background-color: var(--container-bg-color);
+            box-shadow: 0 4px 10px var(--shadow-color);
         }
 
         h1 {
             text-align: center;
-            color: #2e8b57; /* Greenish color for the heading */
+            color: var(--heading-color);
         }
 
         ul {
             list-style: none;
             padding: 0;
-            display: flex; /* Flexbox for horizontal layout */
-            justify-content: center; /* Center the buttons */
-            flex-wrap: wrap; /* Wrap buttons if necessary */
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         li {
-            margin: 0 15px; /* Add space between buttons */
+            margin: 10px 15px;
         }
 
         a {
             text-decoration: none;
-            padding: 10px 15px;
+            padding: 10px 20px;
             border-radius: 5px;
             color: white;
-            background-color: #007bff; /* Bootstrap blue color */
-            transition: background-color 0.3s;
+            background-color: var(--button-bg-color);
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
 
         a:hover {
-            background-color: #0056b3; /* Darker blue on hover */
+            background-color: var(--button-hover-bg-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .logout {
             display: block;
             text-align: center;
             margin-top: 20px;
-            background-color: #dc3545; /* Bootstrap red color */
+            background-color: var(--logout-bg-color);
             padding: 10px;
             border-radius: 5px;
             color: white;
-            text-decoration: none; /* Remove underline */
+            text-decoration: none;
         }
 
         .logout:hover {
-            background-color: #c82333; /* Darker red on hover */
+            background-color: var(--logout-hover-bg-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
-        /* Styles for input and display box */
         .input-box {
             margin-top: 20px;
             display: flex;
@@ -82,30 +98,50 @@
             border-radius: 4px;
             width: 70%;
             margin-right: 10px;
+            transition: border-color 0.3s;
+        }
+
+        .input-box input:focus {
+            border-color: var(--button-bg-color);
+            outline: none;
         }
 
         .display-box {
             margin-top: 20px;
-            padding: 10px;
+            padding: 15px;
             border: 1px solid #ccc;
             border-radius: 4px;
-            background-color: #e9ecef; /* Light gray background for display box */
+            background-color: #e9ecef;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .input-box input {
+                width: 100%;
+                margin: 0;
+            }
+
+            ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            li {
+                margin: 10px 0;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" role="main">
         <h1>WELCOME TO OFMS</h1>
         <ul>
-            <li><a href="/get-quote">Get Quote</a></li>
-            <li><a href="/shipment-details">Shipment Details</a></li>
-            <li><a href="/port-details">Port Details</a></li>
-            <li><a href="/ship-details">Ship Details</a></li>
+            <li><a href="/get-quote" aria-label="Get Quote">Get Quote</a></li>
+            <li><a href="/shipment-details" aria-label="View Shipment Details">Shipment Details</a></li>
+            <li><a href="/port-details" aria-label="View Port Details">Port Details</a></li>
+            <li><a href="/ship-details" aria-label="View Ship Details">Ship Details</a></li>
         </ul>
-
-
-
-        <a href="/logout" class="logout">Logout</a> <!-- Ensure this URL is correct for your logout functionality -->
+        <a href="/logout" class="logout" aria-label="Logout">Logout</a>
     </div>
 </body>
 </html>

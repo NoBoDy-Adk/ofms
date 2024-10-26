@@ -3,11 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Login to the Ocean Freight Management System to access your account and manage your shipping needs.">
+    <meta name="keywords" content="ocean, freight, management, login, shipping, system">
+    <meta name="author" content="Your Company Name">
     <title>Login - Ocean Freight Management System</title>
     <style>
+        /* CSS Variables for easier customization */
+        :root {
+            --bg-gradient-start: #a1c4fd;
+            --bg-gradient-end: #c2e9fb;
+            --container-bg-color: white;
+            --text-color: #2c3e50;
+            --button-bg-color: #007bff;
+            --button-hover-bg-color: #0056b3;
+            --input-border-color: #bdc3c7;
+            --error-color: red;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+        }
+
+        /* General body styling */
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
             display: flex;
             justify-content: center;
             align-items: center;
@@ -15,20 +32,23 @@
             margin: 0;
         }
 
+        /* Container for form and content */
         .container {
-            background-color: white;
+            background-color: var(--container-bg-color);
             padding: 40px;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px var(--shadow-color);
             width: 350px;
+            max-width: 90%;
         }
 
         h2 {
             text-align: center;
-            color: #2c3e50;
+            color: var(--text-color);
             margin-bottom: 20px;
         }
 
+        /* Styling for the form elements */
         form {
             display: flex;
             flex-direction: column;
@@ -37,15 +57,16 @@
         input[type="text"], input[type="password"] {
             padding: 12px;
             margin: 10px 0;
-            border: 1px solid #bdc3c7;
+            border: 1px solid var(--input-border-color);
             border-radius: 5px;
             font-size: 16px;
         }
 
+        /* Styling for the submit button */
         button {
             padding: 12px;
             margin-top: 10px;
-            background-color: #007bff;
+            background-color: var(--button-bg-color);
             color: white;
             border: none;
             border-radius: 5px;
@@ -55,9 +76,10 @@
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: var(--button-hover-bg-color);
         }
 
+        /* Styling for the back link */
         .back-link {
             text-align: center;
             margin-top: 15px;
@@ -65,20 +87,36 @@
 
         .back-link a {
             text-decoration: none;
-            color: #007bff;
+            color: var(--button-bg-color);
             font-weight: bold;
         }
 
         .back-link a:hover {
-            color: #0056b3;
+            color: var(--button-hover-bg-color);
         }
 
-        /* Error message styling */
+        /* Styling for error messages */
         .error {
-            color: red;
+            color: var(--error-color);
             text-align: center;
             margin-bottom: 15px;
             font-weight: bold;
+        }
+
+        /* Responsive styling */
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px;
+                width: 100%;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            button {
+                font-size: 16px;
+            }
         }
     </style>
 </head>
@@ -86,21 +124,24 @@
     <div class="container">
         <h2>Login</h2>
 
-        <!-- Display error message if it exists in the query -->
+        <!-- Display error message if it exists -->
         <div class="error" id="error-message"></div>
 
+        <!-- Login form -->
         <form action="/login" method="POST">
             <input type="text" name="contact_number" placeholder="Contact Number" required />
             <input type="password" name="signin_password" placeholder="Password" required />
             <button type="submit">Login</button>
         </form>
+
+        <!-- Back to home link -->
         <div class="back-link">
             <a href="index.html">Back to Home</a>
         </div>
     </div>
 
     <script>
-        // Get error message from query parameter and display it
+        // Display error message from query parameters, if any
         const urlParams = new URLSearchParams(window.location.search);
         const errorMessage = urlParams.get('error');
         if (errorMessage) {

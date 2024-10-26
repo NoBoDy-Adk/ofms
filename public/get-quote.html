@@ -3,12 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Get Quote</title>
-    <link rel="stylesheet" href="styles.css"> <!-- Add your CSS file here -->
+    <meta name="description" content="Get a quote for shipping services. Select ship, departure, and arrival ports, and specify volume and description to calculate the cost.">
+    <meta name="keywords" content="quote, shipping, calculate, ports, ship, volume">
+    <meta name="author" content="Your Company Name">
+    <title>Get Quote | OFMS</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link your external CSS here -->
     <style>
+        /* CSS Variables */
+        :root {
+            --bg-color: #e8f4fa;
+            --form-bg-color: #ffffff;
+            --text-color: #34495e;
+            --heading-color: #2c3e50;
+            --input-border-color: #bdc3c7;
+            --button-bg-color: #007bff;
+            --button-hover-bg-color: #0056b3;
+            --success-color: #27ae60;
+            --error-color: #e74c3c;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
         body {
             font-family: Arial, sans-serif;
-            background-color: #e8f4fa;
+            background-color: var(--bg-color);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -17,14 +34,16 @@
         }
 
         h1 {
-            color: #2c3e50;
+            color: var(--heading-color);
+            text-align: center;
+            margin-bottom: 20px;
         }
 
         form {
-            background-color: white;
+            background-color: var(--form-bg-color);
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px var(--shadow-color);
             max-width: 400px;
             width: 100%;
         }
@@ -32,14 +51,14 @@
         label {
             margin-top: 15px;
             display: block;
-            color: #34495e;
+            color: var(--text-color);
         }
 
         select, input[type="number"], input[type="text"] {
             width: 100%;
             padding: 10px;
             margin-top: 8px;
-            border: 1px solid #bdc3c7;
+            border: 1px solid var(--input-border-color);
             border-radius: 4px;
             font-size: 16px;
         }
@@ -48,68 +67,76 @@
             margin-top: 20px;
             padding: 10px;
             width: 100%;
-            background-color: #007bff;
+            background-color: var(--button-bg-color);
             color: white;
             border: none;
             border-radius: 5px;
             font-size: 18px;
             cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
         }
 
         button:hover {
-            background-color: #0056b3;
+            background-color: var(--button-hover-bg-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         #quote-result {
             margin-top: 20px;
             display: none;
             padding: 20px;
-            border: 1px solid #007bff;
+            border: 1px solid var(--button-bg-color);
             border-radius: 5px;
             background-color: #f7f9fc;
         }
 
         #quote-amount {
             font-weight: bold;
-            color: #27ae60;
+            color: var(--success-color);
             font-size: 24px;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            font-size: 14px;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <h1>Get Quote</h1>
-    <form id="quote-form">
+    <form id="quote-form" aria-label="Shipping Quote Form">
         <label for="ship">Select Ship:</label>
-        <select id="ship" name="shipid" required>
+        <select id="ship" name="shipid" required aria-required="true">
             <option value="">Select a ship</option>
             <!-- Ships will be populated here -->
         </select>
 
         <label for="departure-port">Select Departure Port:</label>
-        <select id="departure-port" name="departurePortId" required>
+        <select id="departure-port" name="departurePortId" required aria-required="true">
             <option value="">Select a departure port</option>
             <!-- Departure ports will be populated here -->
         </select>
 
         <label for="arrival-port">Select Arrival Port:</label>
-        <select id="arrival-port" name="arrivalPortId" required>
+        <select id="arrival-port" name="arrivalPortId" required aria-required="true">
             <option value="">Select an arrival port</option>
             <!-- Arrival ports will be populated here -->
         </select>
 
-        <label for="volume">Volume:</label>
-        <input type="number" id="volume" name="volume" min="0" required>
+        <label for="volume">Volume (in cubic meters):</label>
+        <input type="number" id="volume" name="volume" min="0" required aria-required="true" aria-label="Volume">
 
-        <label for="description">Description:</label>
-        <input type="text" id="description" name="description" required>
+        <label for="description">Description of Goods:</label>
+        <input type="text" id="description" name="description" required aria-required="true" aria-label="Description">
 
-        <button type="submit">Calculate Quote</button>
+        <button type="submit" aria-label="Calculate Quote">Calculate Quote</button>
     </form>
 
-    <div id="quote-result">
+    <div id="quote-result" aria-live="polite">
         <h2>Quote Amount: <span id="quote-amount"></span></h2>
-        <button id="accept-quote">Accept Quote</button>
-        <button id="decline-quote">Decline Quote</button>
+        <button id="accept-quote" aria-label="Accept Quote">Accept Quote</button>
+        <button id="decline-quote" aria-label="Decline Quote">Decline Quote</button>
     </div>
 
     <script>
@@ -140,11 +167,10 @@
                         document.getElementById('quote-amount').textContent = `$${result.amount}`;
                         document.getElementById('quote-result').style.display = 'block';
                     } else {
-                        alert('Error calculating quote: ' + result.error);
+                        displayError('Error calculating quote: ' + result.error);
                     }
                 } catch (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred while calculating the quote.');
+                    displayError('An error occurred while calculating the quote.');
                 }
             });
 
@@ -153,6 +179,8 @@
                 const response = await fetch('/accept-quote', { method: 'POST' });
                 if (response.ok) {
                     window.location.href = '/receiver-details';
+                } else {
+                    displayError('Error accepting quote.');
                 }
             });
 
@@ -161,6 +189,8 @@
                 const response = await fetch('/decline-quote', { method: 'POST' });
                 if (response.ok) {
                     window.location.href = '/dashboard';
+                } else {
+                    displayError('Error declining quote.');
                 }
             });
         });
@@ -172,12 +202,12 @@
                 const shipSelect = document.getElementById('ship');
                 ships.forEach(ship => {
                     const option = document.createElement('option');
-                    option.value = ship.name; // Assuming you want the ship name as the value
+                    option.value = ship.name;
                     option.textContent = ship.name;
                     shipSelect.appendChild(option);
                 });
             } catch (error) {
-                console.error('Error fetching ships:', error);
+                displayError('Error fetching ships.');
             }
         }
 
@@ -188,12 +218,12 @@
                 const portSelect = document.getElementById('departure-port');
                 ports.forEach(port => {
                     const option = document.createElement('option');
-                    option.value = port.port_name; // Assuming you want the port name as the value
+                    option.value = port.port_name;
                     option.textContent = port.port_name;
                     portSelect.appendChild(option);
                 });
             } catch (error) {
-                console.error('Error fetching departure ports:', error);
+                displayError('Error fetching departure ports.');
             }
         }
 
@@ -204,13 +234,20 @@
                 const portSelect = document.getElementById('arrival-port');
                 ports.forEach(port => {
                     const option = document.createElement('option');
-                    option.value = port.port_name; // Assuming you want the port name as the value
+                    option.value = port.port_name;
                     option.textContent = port.port_name;
                     portSelect.appendChild(option);
                 });
             } catch (error) {
-                console.error('Error fetching arrival ports:', error);
+                displayError('Error fetching arrival ports.');
             }
+        }
+
+        function displayError(message) {
+            const errorElement = document.createElement('div');
+            errorElement.classList.add('error-message');
+            errorElement.textContent = message;
+            document.querySelector('form').appendChild(errorElement);
         }
     </script>
 </body>
